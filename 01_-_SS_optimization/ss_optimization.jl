@@ -1,4 +1,4 @@
-# Functions for solving optimization problem with the SS optimization method.
+# Functions for solving optimization problem with the Subset Simulation method
 #
 # Optimization problem:
 # max  f(X)     s.t  g_i(X) <= 0,   i = 1, 2, ..., m ---> constraints
@@ -8,10 +8,9 @@
 # xi^l <= xi <= xi^u,    i = 1, 2, ..., n ---> bounds
 #
 # =============================================================================
-# ------- March 2022
-# -----------------------------------------------------------------------------
-# by 
-# ------- Steven Vanegas Giraldo -------> stvanegasgi@unal.edu.co
+# DATE:    March 2022
+# WHO:     Steven Vanegas Giraldo
+# EMAIL:   stvanegasgi@unal.edu.co
 # -----------------------------------------------------------------------------
 # Universidad Nacional de Colombia - Sede Manizales
 # =============================================================================
@@ -30,7 +29,7 @@ using Statistics;    # basic statistics functionality
 # ============================= auxiliar functions ============================
 
 """
-Function to compute constraint violation function vi.
+Function to compute constraint violation function vi, equation 6, Ref. [1]
 
     v_i = const_violation_function(value_gi)
 
@@ -49,6 +48,7 @@ Returns:
 """
 function const_violation_function(value_gi)
 
+    # Equation 6, Ref. [1]
     if value_gi > 0     # for gi(xs) > 0  (xs don't complies with the restrictions)
         return value_gi
     else                # for gi(xs) <= 0 (xs complies with the restrictions)
@@ -57,7 +57,7 @@ function const_violation_function(value_gi)
 end
 
 """
-Function to compute constraint fitness function for a sample Xs
+Function to compute the constraint fitness function for a sample Xs
 
     Fcon_Xs     =   F_con(Xs                   ::Vector{Float64},
                           constraint_function  ::Function,
@@ -69,8 +69,8 @@ Parameters:
 
     constraint_function (Function): function that computes the value of the all
                                     constraints of optimization problem, the
-                                    constraints must have the form gi(X) <=0, the
-                                    array must be contain all the values gi(X) <= 0.
+                                    constraints must have the form gi(X) <= 0, the
+                                    array must contain all the values gi(X) <= 0.
                                     With the input parameters as follows:
                                     -------------------------------------------
                                     constraint_function(X, opt_arg)
@@ -83,7 +83,7 @@ Parameters:
 
 Returns:
 
-    Fcon                (Float):    value of Fcon(xs) = max(v_i), equation (7)
+    Fcon                (Float):    value of Fcon(xs) = -max(v_i), equation (7)
                                     in [1]
 """
 function F_con(Xs                    ::Vector{Float64},
@@ -119,7 +119,7 @@ Parameters:
                                 opt_arg: optional argument
 
     Fc_x              (Array):  array with the values of constraint fitness
-                                function of the samples (disorderly)
+                                function of the samples (unsorted)
                                 Fc_x = [Fcon(x1), Fcon(x2), ..., Fcon(xN)]^T
 
     samples           (Array):  array with the samples, each row is a dimension
@@ -149,10 +149,10 @@ function double_criterion_sort(fun_x    ::Vector{Float64},
                                samples  ::Array{Float64,2})
 
 #   first sort the constrains fitness function, Fcon_x, equation (8) [1]
-    ind_1       = sortperm(Fc_x, rev=true); # find the index
-    Fc_x_sort   = deepcopy(Fc_x[ind_1]); # first the best sample
+    ind_1      = sortperm(Fc_x, rev=true); # find the index
+    Fc_x_sort  = deepcopy(Fc_x[ind_1]);    # first the best sample
 
-    fun_x_sort = deepcopy(fun_x[ind_1]); # sort the objective functions values
+    fun_x_sort = deepcopy(fun_x[ind_1]);   # sort the objective functions values
 
 #   verify the samples that satisfy Fcon = 0
     check_Fcon = findall(values -> values.== 0, Fc_x_sort);
@@ -161,7 +161,7 @@ function double_criterion_sort(fun_x    ::Vector{Float64},
     final_index = deepcopy(ind_1);
 
 #   only sort with objective function the feasible solutions
-    if length(check_Fcon) != 0 # when exist feasibles samples
+    if length(check_Fcon) != 0 # there exist feasibles samples
 
 #       second sort by objective function only complies Fcon = 0 (feasible samples)
 #       best the max of objective function value
@@ -172,9 +172,9 @@ function double_criterion_sort(fun_x    ::Vector{Float64},
     end
 
 #   ultimate sort (the double-criterion) first the best sample
-    fun_x_sort      = deepcopy(fun_x[final_index]);         # objetive function
-    Fc_x_sort       = deepcopy(Fc_x[final_index]);          # Fcon
-    samples_sort    = deepcopy(samples[:, final_index]);    # samples
+    fun_x_sort   = deepcopy(fun_x[final_index]);      # objetive function
+    Fc_x_sort    = deepcopy(Fc_x[final_index]);       # Fcon
+    samples_sort = deepcopy(samples[:, final_index]); # samples
 
     return fun_x_sort, Fc_x_sort, samples_sort
 end
@@ -205,7 +205,7 @@ Parameters:
 
     c_fun          (Function):  function that computes the value of the all
                                 constraints of optimization problem, the
-                                constraints must have the form gi(X) <=0, the
+                                constraints must have the form gi(X) <= 0, the
                                 array must be contain all the values gi(X) <= 0.
                                 With the input parameters as follows:
                                 -----------------------------------------------
@@ -215,7 +215,7 @@ Parameters:
 
     N                   (Int):  number of samples for the method ss
 
-    bounds            (Array):  array that contain all the lower and upper
+    bounds            (Array):  array that contains the lower and upper
                                 bounds for each component of vector X, for
                                 n components
                                 -----------------------------------------------
@@ -238,7 +238,7 @@ Returns:
                                 x_optimal =  [x1_opt_1      x1_opt_end;
                                               x2_opt_1      x2_opt_end;
                                                ...             ...    ;
-                                              xn_opt_1      xn_opt_end]
+                                              xn_opt_1      xn_opt_end] 
 
     h_optimal       (Array):    array with all value of objetive function of
                                 the best x for each level
@@ -259,15 +259,14 @@ function ss_optimization(fun            ::Function,
     upper = 2;
 
 # ========================= some variables ====================================
-
-    dimension = length(bounds[:, lower]); # dimension of the variables
-#                                           X = [x1, x2, ..., xn]^T
-
 #   means of the boundaries (for each row) center of domain
     μ_i = (bounds[:, lower] + bounds[:, upper])/2;
 
 #   three sigma limits, equation (12) [1] (3 standard deviation from the mean)
     σ_i = abs.(bounds[:, upper]- bounds[:, lower])/6;
+
+#   dimension of the variables X = [x1, x2, ..., xn]^T
+    dimension = length(μ_i);   
 
 # ========================= compute P(F1) =====================================
 
@@ -277,8 +276,7 @@ function ss_optimization(fun            ::Function,
 #   generate the sample of f(x; μ, σ, xl, xu) for each component
     for component in 1:dimension
 
-        xl_i = bounds[component, lower]; # lower limit
-        xu_i = bounds[component, upper]; # upper limit
+        xl_i, xu_i  = bounds[component, :]; # lower and upper limit
 
 #       truncated normal distribution (artificial PDF), equation (11) [1]
         trunc_normal = Truncated(Normal(μ_i[component], σ_i[component]), xl_i, xu_i);
@@ -310,6 +308,9 @@ function ss_optimization(fun            ::Function,
 #   sort the samples for double-criterion in [1]
     h_x, Fcon_x, XS = double_criterion_sort(h_x, Fcon_x, XS);
 
+    # Initial stage
+    k = 1;
+
     σ_k = std(XS, dims=2); # standard desviation for the samples for components
 
 #   convergence criterion, equation (13) in [1]
@@ -319,24 +320,21 @@ function ss_optimization(fun            ::Function,
     p_k = 0.5;
 
 #   save x_optimal and h(x_optimal) for the k-level
-    x_optimal = [XS[:, 1];];
+    x_optimal = [XS[:, 1];];                 
     h_optimal = [h_x[1]];
 
-    k = 1;
+    while ε <= maximum(σ_k) # convergence criterion
 
-    while ε <= max(σ_k...) # convergence criterion
-
-        println("x =  ", x_optimal[:, end])
-        println("h(x) = ", h_optimal[end])
+        println("x =  ", x_optimal[:, end])  # ????????????? porque end y no 1?
+        println("h(x) = ", h_optimal[end])   # ????????????? porque end y no 1?
         println("level = ", k, "\n")
 
-#       initial calculations for the k simulation level
-        Nc = Int64(ceil(p_k * N));    # number of chains
-        Ns = Int64(ceil(1/p_k));      # number of samples per chain
+#       initial calculations for the k-th simulation level
+        Nc = ceil(Int64, p_k * N);    # number of chains
+        Ns = ceil(Int64, 1/p_k);      # number of samples per chain
 
         if N != Nc * Ns # Nc and Ns are positive integers?
-            println("Nc or Ns are not a positive numbers. Stop simulation\n");
-            break;
+            error("Nc or Ns are not a positive numbers. Stop simulation\n");
         end
 
         Ns = Ns - 1; # fit the samples
@@ -350,9 +348,9 @@ function ss_optimization(fun            ::Function,
 
         for chain in 1:Nc # number of Markov chain
 
-            seed_i          = seeds[:, chain];  # seed with n component
-            h_seeds_i       = h_seeds[chain];   # objetive function of the seed
-            Fcon_seeds_i    = Fcon_seeds[chain];# constraint fitness function of the seed
+            seed_i       = seeds[:, chain];  # seed with n component
+            h_seeds_i    = h_seeds[chain];   # objetive function of the seed
+            Fcon_seeds_i = Fcon_seeds[chain];# constraint fitness function of the seed
 
             for sample_chain in 1:Ns # for Ns samples per chain
 
@@ -360,9 +358,8 @@ function ss_optimization(fun            ::Function,
                 X_p = zeros(dimension); # prepared a sample X' from p*(-|Xk)
 
                 for component_i in 1:dimension # for each component of the sample
-
-                    xl_i = bounds[component_i, lower]; # lower limit
-                    xu_i = bounds[component_i, upper]; # upper limit
+#                                                                               OJO ES MAS FACIL GENERARLO DE LA PDF TRUNCADA con Truncated
+                    xl_i, xu_i = bounds[component_i, :];
 
 #                   the proposal PDF p*(-|Xk), N(Xk, σ_sample)
                     proposal_pdf = Normal(seed_i[component_i], σ_k[component_i]);
@@ -374,7 +371,7 @@ function ss_optimization(fun            ::Function,
                         x_component = rand(proposal_pdf);
 
 #                       the sample could be outer the boundaries
-                        if x_component <= xu_i &&  x_component >= xl_i 
+                        if xl_i <= x_component <= xu_i
                             break;
                         end
                     end
@@ -384,28 +381,24 @@ function ss_optimization(fun            ::Function,
                     trunc_normal = Truncated(Normal(μ_i[component_i], σ_i[component_i]), xl_i, xu_i);
 
 #                   relation f_j(X')/f_j(Xk)
-                    r1 = pdf(trunc_normal, x_component)/pdf(trunc_normal, seed_i[component_i]);
+                    r = pdf(trunc_normal, x_component)/pdf(trunc_normal, seed_i[component_i]);
 
-#                   if the proposal p*(x;xk) is symetric p*(Xk;X')/p*(X';Xk) = 1
-                    r = r1; # relation (f_j(X') * p*(Xk;X'))/(f_j(Xk) * p*(X';Xk))
-                    
                     r = min(1, r); # acceptance probability
 
 #                   acceptation the component i of sample or is Xk
                     if rand(Uniform(0, 1)) < r  # X_k+1 = X'
-
                         X_p[component_i] = x_component;         # accept
-
                     else                        # X_k+1 = Xk
-
                         X_p[component_i] = seed_i[component_i]; # reject
                     end
                 end
 
 #               evaluate a objetive function and the constraint fitness function
 #               for the candidate
-                h_candidate     = fun(X_p, opt_arg);
-                Fcon_candidate  = F_con(X_p, c_fun, opt_arg);
+                h_candidate    = fun(X_p, opt_arg);
+                Fcon_candidate = F_con(X_p, c_fun, opt_arg);
+
+                idx = Nc + (chain - 1)*Ns + sample_chain;
 
 #               determinate the candidate X' is in the event k-level with Fk
                 if Fc_k == 0 # satisfy the constraint {h >= hk}
@@ -413,16 +406,16 @@ function ss_optimization(fun            ::Function,
                     if h_candidate >= h_k # accept the candidate in the chain
 
 #                       save the candidate, objective function and his Fcon
-                        XS[:, Nc + (chain - 1)*Ns + sample_chain]  = X_p;
-                        h_x[Nc + (chain - 1)*Ns + sample_chain]    = h_candidate;
-                        Fcon_x[Nc + (chain - 1)*Ns + sample_chain] = Fcon_candidate;
+                        XS[:, ]  = X_p;
+                        h_x[idx]    = h_candidate;
+                        Fcon_x[idx] = Fcon_candidate;
 
                     else # reject the candidate and set the seed
 
 #                       save the seed, objective function and his Fcon
-                        XS[:, Nc + (chain - 1)*Ns + sample_chain]  = seed_i;
-                        h_x[Nc + (chain - 1)*Ns + sample_chain]    = h_seeds_i;
-                        Fcon_x[Nc + (chain - 1)*Ns + sample_chain] = Fcon_seeds_i;
+                        XS[:, idx]  = seed_i;
+                        h_x[idx]    = h_seeds_i;
+                        Fcon_x[idx] = Fcon_seeds_i;
 
                     end
                 else # Fck < 0 {Fcon >= Fck}
@@ -430,24 +423,24 @@ function ss_optimization(fun            ::Function,
                     if Fcon_candidate >= Fc_k # accept the candidate in the chain
 
 #                       save the candidate, objective function and his Fcon
-                        XS[:, Nc + (chain - 1)*Ns + sample_chain]  = X_p;
-                        h_x[Nc + (chain - 1)*Ns + sample_chain]    = h_candidate;
-                        Fcon_x[Nc + (chain - 1)*Ns + sample_chain] = Fcon_candidate;
+                        XS[:, idx]  = X_p;
+                        h_x[idx]    = h_candidate;
+                        Fcon_x[idx] = Fcon_candidate;
 
                     else # reject the candidate and set the seed
 
 #                       save the seed, objective function and his Fcon
-                        XS[:, Nc + (chain - 1)*Ns + sample_chain]  = seed_i;
-                        h_x[Nc + (chain - 1)*Ns + sample_chain]    = h_seeds_i;
-                        Fcon_x[Nc + (chain - 1)*Ns + sample_chain] = Fcon_seeds_i;
+                        XS[:, idx]  = seed_i;
+                        h_x[idx]    = h_seeds_i;
+                        Fcon_x[idx] = Fcon_seeds_i;
 
                     end
                 end
 
 #               define the news seed and objective function of the seed for the chain
-                seed_i          = XS[:, Nc + (chain - 1)*Ns + sample_chain];
-                h_seeds_i       = h_x[Nc + (chain - 1)*Ns + sample_chain];
-                Fcon_seeds_i    = Fcon_x[Nc + (chain - 1)*Ns + sample_chain];
+                seed_i          = XS[:, idx];
+                h_seeds_i       = h_x[idx];
+                Fcon_seeds_i    = Fcon_x[idx];
             end
         end
 
@@ -460,7 +453,7 @@ function ss_optimization(fun            ::Function,
         σ_k_bounds = abs.(σ_k./(bounds[:, upper] - bounds[:, lower]));
 
 #       defines the level probability for the next level, section 4.3 [1]
-        σ_i_hat = max(σ_k...); # criterion for the level probability
+        σ_i_hat = maximum(σ_k); # criterion for the level probability
 
 #       criterion from section 4.3 [1]
         if σ_i_hat < 0.1
