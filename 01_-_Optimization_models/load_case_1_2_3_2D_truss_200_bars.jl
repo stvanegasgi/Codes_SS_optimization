@@ -1,11 +1,55 @@
-# Structural model unknowns for 2D truss, load case 2 for truss with 200 bars
+# Structural model unknowns for 2D truss, load case 1, 2 and 3 for truss with
+# 200 bars
 #
+#
+# Load conditions:
+# * Load case 1 for truss with 200 bars
+# * Load case 2 for truss with 200 bars
+# * Load case 3 for truss with 200 bars
+#-----------------------------------------------------
+# Load case 1
+#-----------------------------------------------------
+# Load = 1.0 [kip]
+# Direction: positive x-direction
+# Nodes: 1, 6, 15, 20, 29, 34, 43, 48, 57, 62 and 71
+#-----------------------------------------------------
+# Load case 2
+#-----------------------------------------------------
+# Load = 10.0 [kips]
+# Direction: negative y-direction
+# Nodes: 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26,
+# 28, 29, 30, 31, 32, 33, 34, 36, 38, 40, 42, 43, 44, 45, 46, 47, 48, 50, 52,
+# 54, 56, 57, 58, 59, 60, 61, 62, 64, 66, 68, 70, 71, 72, 73, 74 and 75
+#-----------------------------------------------------
+# Load case 3
+#-----------------------------------------------------
+# load case (1) and (2) acting together
+#-----------------------------------------------------
+#
+# Density of bar material: 0.283 [lb/in^3]
+#
+# Modulus of elasticity: 30_000 [ksi] (all bars)
+#
+# All areas bounds: 0.1 [in^2] <= A_i <= 20.0 [in^2]
+#
+# No limits displacement
+#
+# Stress limits: (compresive -) and (tensile +)
+# Tensile limits:     all bars 10 [ksi]
+# Compressive limits: all bars -10 [ksi]
+#
+# Number of restrictions: 1200
+# * Displacement: = 0
+# * Stress: 2 (Compressive and Tensile) * 200 Bars * 3 load case = 1200
 #
 # keep in mind the units of unknows
 # Areas:     [in^2]
-# Forces:    [kips=1000lb_f]
+# Forces:    [kips = 1_000 lb_f]
 # Distances: [in]
-# Stress:    [ksi=1000psi=1000lb_f/in^2]
+# Stress:    [ksi = 1_000psi = 1_000 lb_f/in^2]
+# Weight:    [lbf]
+# Density:   [lb/in^3]
+#
 #
 # =============================================================================
 # DATE:    December 2021
@@ -350,95 +394,116 @@ elements = Int64[    1        2          1;       #   1
                     75       77         28];      # 200
 
 # materials properties
-#                              Type   Areas     E
-material_properties = Float64[   1      1     30_000;
-                                 2      1     30_000;
-                                 3      1     30_000;
-                                 4      1     30_000;
-                                 5      1     30_000;
-                                 6      1     30_000;
-                                 7      1     30_000;
-                                 8      1     30_000;
-                                 9      1     30_000;
-                                10      1     30_000;
-                                11      1     30_000;
-                                12      1     30_000;
-                                13      1     30_000;
-                                14      1     30_000;
-                                15      1     30_000;
-                                16      1     30_000;
-                                17      1     30_000;
-                                18      1     30_000;
-                                19      1     30_000;
-                                20      1     30_000;
-                                21      1     30_000;
-                                22      1     30_000;
-                                23      1     30_000;
-                                24      1     30_000;
-                                25      1     30_000;
-                                26      1     30_000;
-                                27      1     30_000;
-                                28      1     30_000;
-                                29      1     30_000];
+#                              Type   Areas     E         ρ
+material_properties = Float64[   1      1     30_000    0.283;
+                                 2      1     30_000    0.283;
+                                 3      1     30_000    0.283;
+                                 4      1     30_000    0.283;
+                                 5      1     30_000    0.283;
+                                 6      1     30_000    0.283;
+                                 7      1     30_000    0.283;
+                                 8      1     30_000    0.283;
+                                 9      1     30_000    0.283;
+                                10      1     30_000    0.283;
+                                11      1     30_000    0.283;
+                                12      1     30_000    0.283;
+                                13      1     30_000    0.283;
+                                14      1     30_000    0.283;
+                                15      1     30_000    0.283;
+                                16      1     30_000    0.283;
+                                17      1     30_000    0.283;
+                                18      1     30_000    0.283;
+                                19      1     30_000    0.283;
+                                20      1     30_000    0.283;
+                                21      1     30_000    0.283;
+                                22      1     30_000    0.283;
+                                23      1     30_000    0.283;
+                                24      1     30_000    0.283;
+                                25      1     30_000    0.283;
+                                26      1     30_000    0.283;
+                                27      1     30_000    0.283;
+                                28      1     30_000    0.283;
+                                29      1     30_000    0.283];
+
+# load case 1
+# forces information (Direction X=1, Y=2, Z=3)
+#                       Node     Direction   Magnitude
+forces_case_1 = Float64[  1           1         1.0;
+                          6           1         1.0;
+                         15           1         1.0;
+                         20           1         1.0;
+                         29           1         1.0;
+                         34           1         1.0;
+                         43           1         1.0;
+                         48           1         1.0;
+                         57           1         1.0;
+                         62           1         1.0;
+                         71           1         1.0];
 
 # load case 2
 # forces information (Direction X=1, Y=2, Z=3)
-#                Node     Direction   Magnitude
-forces = Float64[  1          2         -10.0;
-                   2          2         -10.0;
-                   3          2         -10.0;
-                   4          2         -10.0;
-                   5          2         -10.0;
-                   6          2         -10.0;
-                   8          2         -10.0;
-                  10          2         -10.0;
-                  12          2         -10.0;
-                  14          2         -10.0;
-                  15          2         -10.0;
-                  16          2         -10.0;
-                  17          2         -10.0;
-                  18          2         -10.0;
-                  19          2         -10.0;
-                  20          2         -10.0;
-                  22          2         -10.0;
-                  24          2         -10.0;
-                  26          2         -10.0;
-                  28          2         -10.0;
-                  29          2         -10.0;
-                  30          2         -10.0;
-                  31          2         -10.0;
-                  32          2         -10.0;
-                  33          2         -10.0;
-                  34          2         -10.0;
-                  36          2         -10.0;
-                  38          2         -10.0;
-                  40          2         -10.0;
-                  42          2         -10.0;
-                  43          2         -10.0;
-                  44          2         -10.0;
-                  45          2         -10.0;
-                  46          2         -10.0;
-                  47          2         -10.0;
-                  48          2         -10.0;
-                  50          2         -10.0;
-                  52          2         -10.0;
-                  54          2         -10.0;
-                  56          2         -10.0;
-                  57          2         -10.0;
-                  58          2         -10.0;
-                  59          2         -10.0;
-                  60          2         -10.0;
-                  61          2         -10.0;
-                  62          2         -10.0;
-                  64          2         -10.0;
-                  66          2         -10.0;
-                  68          2         -10.0;
-                  70          2         -10.0;
-                  71          2         -10.0;
-                  72          2         -10.0;
-                  73          2         -10.0;
-                  74          2         -10.0;
-                  75          2         -10.0];
+#                       Node     Direction   Magnitude
+forces_case_2 = Float64[  1          2         -10.0;
+                          2          2         -10.0;
+                          3          2         -10.0;
+                          4          2         -10.0;
+                          5          2         -10.0;
+                          6          2         -10.0;
+                          8          2         -10.0;
+                         10          2         -10.0;
+                         12          2         -10.0;
+                         14          2         -10.0;
+                         15          2         -10.0;
+                         16          2         -10.0;
+                         17          2         -10.0;
+                         18          2         -10.0;
+                         19          2         -10.0;
+                         20          2         -10.0;
+                         22          2         -10.0;
+                         24          2         -10.0;
+                         26          2         -10.0;
+                         28          2         -10.0;
+                         29          2         -10.0;
+                         30          2         -10.0;
+                         31          2         -10.0;
+                         32          2         -10.0;
+                         33          2         -10.0;
+                         34          2         -10.0;
+                         36          2         -10.0;
+                         38          2         -10.0;
+                         40          2         -10.0;
+                         42          2         -10.0;
+                         43          2         -10.0;
+                         44          2         -10.0;
+                         45          2         -10.0;
+                         46          2         -10.0;
+                         47          2         -10.0;
+                         48          2         -10.0;
+                         50          2         -10.0;
+                         52          2         -10.0;
+                         54          2         -10.0;
+                         56          2         -10.0;
+                         57          2         -10.0;
+                         58          2         -10.0;
+                         59          2         -10.0;
+                         60          2         -10.0;
+                         61          2         -10.0;
+                         62          2         -10.0;
+                         64          2         -10.0;
+                         66          2         -10.0;
+                         68          2         -10.0;
+                         70          2         -10.0;
+                         71          2         -10.0;
+                         72          2         -10.0;
+                         73          2         -10.0;
+                         74          2         -10.0;
+                         75          2         -10.0];
+
+# load case 3
+# forces information
+# the load case 1 and 2 acting togethers
+forces_case_3 = [copy(forces_case_1);
+                 copy(forces_case_2)];
 
 # restricted degree of freedom (Direction X=1, Y=2, Z=3)
 #                       Node   Direction
@@ -446,3 +511,85 @@ restricted_dof = Int64[  76        1;
                          76        2;
                          77        1;
                          77        2];
+
+# minimun and maximum bounds for variables (areas of structure)
+#                           Min       Max
+bounds_variables = Float64[ 0.1      20.0;  # A1  [in^2]
+                            0.1      20.0;  # A2  [in^2]
+                            0.1      20.0;  # A3  [in^2]
+                            0.1      20.0;  # A4  [in^2]
+                            0.1      20.0;  # A5  [in^2]
+                            0.1      20.0;  # A6  [in^2]
+                            0.1      20.0;  # A7  [in^2]
+                            0.1      20.0;  # A8  [in^2]
+                            0.1      20.0;  # A9  [in^2]
+                            0.1      20.0;  # A10  [in^2]
+                            0.1      20.0;  # A11  [in^2]
+                            0.1      20.0;  # A12  [in^2]
+                            0.1      20.0;  # A13  [in^2]
+                            0.1      20.0;  # A14  [in^2]
+                            0.1      20.0;  # A15  [in^2]
+                            0.1      20.0;  # A16  [in^2]
+                            0.1      20.0;  # A17  [in^2]
+                            0.1      20.0;  # A18  [in^2]
+                            0.1      20.0;  # A19  [in^2]
+                            0.1      20.0;  # A20  [in^2]
+                            0.1      20.0;  # A21  [in^2]
+                            0.1      20.0;  # A22  [in^2]
+                            0.1      20.0;  # A23  [in^2]
+                            0.1      20.0;  # A24  [in^2]
+                            0.1      20.0;  # A25  [in^2]
+                            0.1      20.0;  # A26  [in^2]
+                            0.1      20.0;  # A27  [in^2]
+                            0.1      20.0;  # A28  [in^2]
+                            0.1      20.0]; # A29  [in^2]
+
+# compressive and tensile limits in axial forces for each element
+# (compresive -) and (tensile +)
+elements_i =  collect(1:200);
+Tensile    =  10.0*ones(200);
+Compresive = -10.0*ones(200);
+
+#                           Element   Tensile  Compresive
+axial_stress_restricted = [elements_i Tensile Compresive];
+
+# restricted displacement in the estructure (Direction X=1, Y=2, Z=3)
+# no restricted
+restricted_displacement = Array{Float64, 2}(undef, 2, 2);
+
+# connection matrix (local to global nodes), column 1 strat node, column 2
+# end node, each row indicates a elements
+L2G_truss_200 = elements[:, 1:2];
+
+# difference coordinates end and start node for each element
+dif_x = xcor[L2G_truss_200[:, 2], 1] - xcor[L2G_truss_200[:, 1], 1];
+dif_y = xcor[L2G_truss_200[:, 2], 2] - xcor[L2G_truss_200[:, 1], 2];
+
+# vector with the length of each element
+L_e = hypot.(dif_x, dif_y);
+
+# model struct
+mutable struct structural_model
+    coordinates             ::Array{Float64,2} # the nodes coordinates
+    info_elements           ::Array{Int64,2}   # elements information
+    info_material_propieties::Array{Float64,2} # material properties information
+    restricted_dof          ::Array{Int64,2}   # degree of freedom restricted
+    number_load_cases       ::Int64            # number of loads cases
+    load_cases              ::Array{Array{Float64,2},1} # the information of loads cases in a array
+    variables_bounds        ::Array{Float64,2} # the maximum and minimun values of variables
+    axial_sigma_restricted  ::Array{Float64,2} # the maximum and minimun values of axial stress
+    constraint_displacement ::Array{Float64,2} # the maximum and minimun values of displacement and degree of freedom
+    length_bars             ::Vector{Float64}  # length of each bar
+end
+
+# struct with the model information
+truss_model_200_bars = structural_model(xcor,
+                                        elements,
+                                        material_properties,
+                                        restricted_dof,
+                                        3,
+                                        [forces_case_1, forces_case_2, forces_case_3],
+                                        bounds_variables,
+                                        axial_stress_restricted,
+                                        restricted_displacement,
+                                        L_e);

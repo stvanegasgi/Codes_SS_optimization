@@ -5,10 +5,9 @@
 # keep in mind the units of unknows
 #
 # =============================================================================
-# ------- November 2021
-# -----------------------------------------------------------------------------
-# by 
-# ------- Steven Vanegas Giraldo -------> stvanegasgi@unal.edu.co
+# DATE:    November 2021
+# WHO:     Steven Vanegas Giraldo
+# EMAIL:   stvanegasgi@unal.edu.co
 # -----------------------------------------------------------------------------
 # Universidad Nacional de Colombia - Sede Manizales
 # =============================================================================
@@ -29,8 +28,7 @@ a, q, N_e, sigma_e, epsilon_e, a_loc = solver_truss(xcor,
                                                     elements,
                                                     elemt_prop,
                                                     forces,
-                                                    dof_restricted,
-                                                    plots)
+                                                    dof_restricted)
 
 Parameters:
 
@@ -86,8 +84,6 @@ Parameters:
                               Node_i     Dir_i ;
                                 ...       ...  ]
                             -- array type -- Array{Int64, 2}
-
-    plots           (Bool): flag to indicate plots the structure
 
 Returns:
 
