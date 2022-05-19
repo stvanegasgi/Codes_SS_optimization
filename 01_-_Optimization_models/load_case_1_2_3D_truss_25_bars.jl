@@ -49,7 +49,7 @@
 # Density:   [lb/in^3]
 #
 #
-# The reference [1] has some error in stress limits, see the reference [2]
+# The reference [1] has some error in stress limits, see the reference [2] and [3]
 #
 # =============================================================================
 # DATE:    November 2021
@@ -63,8 +63,12 @@
 # *(1) Li, H.-S., Au, S.-K (2010). Desing optimization using subset simulation
 #      algorithm. Structural Safety, 32(6), 384-392.
 #
-# *(2) Haftka RT, Gurdal Z. Elements of structural optimization. 3rd
-#      ed. Dordrecht: Kluwer Academic Publishers; 1992. (pag-245)
+# *(2) L. A. Schmit and H. Miura. Approximation concepts for efficient
+#      structural synthesis, Tech. Report CR-2552, NASA, 1976.
+#
+# *(3) Lee KS, Geem ZW. A new structural optimization method based on the
+#      harmony search algorithm. Comput Struct 2004;82(9–10):781–98.
+#
 #
 # -----------------------------------------------------------------------------
 

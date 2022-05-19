@@ -64,8 +64,8 @@
 # *(1) Li, H.-S., Au, S.-K (2010). Desing optimization using subset simulation
 #      algorithm. Structural Safety, 32(6), 384-392.
 #
-# *(2) Haftka RT, Gurdal Z. Elements of structural optimization. 3rd
-#      ed. Dordrecht: Kluwer Academic Publishers; 1992. (pag-245)
+# *(2) L. A. Schmit and H. Miura. Approximation concepts for efficient
+#      structural synthesis, Tech. Report CR-2552, NASA, 1976.
 #
 # -----------------------------------------------------------------------------
 

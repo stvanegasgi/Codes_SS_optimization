@@ -35,7 +35,7 @@
 # 0.1 <= x4 <=  2.0
 #
 # The reference [1] has some errors in the constraints and objective function,
-# see the reference [2]
+# see the reference [2] and [3]
 #
 # =============================================================================
 # DATE:    November 2021
@@ -51,6 +51,9 @@
 #
 # *(2) Coello Coello CA. Use of a self-adaptive penalty approach for engineering
 #      optimization problems. Comput Ind 2000;41(2):13–127.
+#
+# *(3) Rao, S.S., 1996. Engineering Optimization: Theory and Practice.
+#      1st Edn., New Age International, New Dehli, ISBN-10: 8122411495, pp: 112.
 
 # -----------------------------------------------------------------------------
 
