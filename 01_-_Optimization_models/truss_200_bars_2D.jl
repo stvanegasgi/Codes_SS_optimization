@@ -60,10 +60,13 @@ include("../00_-_Truss_structure_solver/structure_solver_functions.jl"); # load 
 # objective function (weight of structure)
 function W(A, model)
 
-    L_i           = model.length_bars; # the length of each bar
-    Type_material = model.info_elements[:, 3]; # type of material
-    ρ_i           = model.info_material_propieties[Type_material, 4]; # density 
-    A_i           = A[Type_material]; # areas for each element
+#   lecture index
+TYPE_MAT_IND = 3;   DENSITY_IND = 4;
+
+L_i           = model.length_bars; # the length of each bar
+Type_material = model.info_elements[:, TYPE_MAT_IND]; # type of material
+ρ_i           = model.info_material_propieties[Type_material, DENSITY_IND]; # density 
+A_i           = A[Type_material]; # areas for each element
 
     return sum(ρ_i .* L_i .* A_i);
 end;
@@ -71,9 +74,13 @@ end;
 # constraints function
 function f_c(A, model)
 
+#   lecture index
+    AREA_IND = 2;   TENSILE_IND = 2;    COMPRESIVE_IND = 3;    DMAX_IND = 3;
+    DMIN_IND = 4;
+
 #   material propieties with A to test
     material_properties_load_1_2_3 = copy(model.info_material_propieties[:, 1:3]);
-    material_properties_load_1_2_3[:, 2] = A;
+    material_properties_load_1_2_3[:, AREA_IND] = A;
 
 #   solution FEM load case 1
     _, _, _, σ1, _, _ = solver_truss(model.coordinates,
@@ -83,8 +90,8 @@ function f_c(A, model)
                                      model.restricted_dof);
 
 #   stress constraints for the load case 1
-    σ1_T = σ1 - model.axial_sigma_restricted[:, 2];   # σ - σmax <= 0
-    σ1_C = model.axial_sigma_restricted[:, 3] - σ1;  # σmin - σ <= 0
+    σ1_T = σ1 - model.axial_sigma_restricted[:, TENSILE_IND];    # σ - σmax <= 0
+    σ1_C = model.axial_sigma_restricted[:, COMPRESIVE_IND] - σ1; # σmin - σ <= 0
 
 #   solution FEM load case 2
     _, _, _, σ2, _, _ = solver_truss(model.coordinates,
@@ -94,8 +101,8 @@ function f_c(A, model)
                                       model.restricted_dof);
 
 #   stress constraints for the load case 2
-    σ2_T = σ2 - model.axial_sigma_restricted[:, 2];   # σ - σmax <= 0
-    σ2_C = model.axial_sigma_restricted[:, 3] - σ2;  # σmin - σ <= 0
+    σ2_T = σ2 - model.axial_sigma_restricted[:, TENSILE_IND];    # σ - σmax <= 0
+    σ2_C = model.axial_sigma_restricted[:, COMPRESIVE_IND] - σ2; # σmin - σ <= 0
 
 #   solution FEM load case 3
     _, _, _, σ3, _, _ = solver_truss(model.coordinates,
@@ -105,8 +112,8 @@ function f_c(A, model)
                                      model.restricted_dof);
 
 #   stress constraints for the load case 1
-    σ3_T = σ3 - model.axial_sigma_restricted[:, 2];   # σ - σmax <= 0
-    σ3_C = model.axial_sigma_restricted[:, 3] - σ3;  # σmin - σ <= 0
+    σ3_T = σ3 - model.axial_sigma_restricted[:, DMAX_IND]; # σ - σmax <= 0
+    σ3_C = model.axial_sigma_restricted[:, DMIN_IND] - σ3; # σmin - σ <= 0
 
     return [σ1_T; σ1_C; σ2_T; σ2_C; σ3_T; σ3_C]
 end;

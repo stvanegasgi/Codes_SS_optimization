@@ -502,8 +502,8 @@ forces_case_2 = Float64[  1          2         -10.0;
 # load case 3
 # forces information
 # the load case 1 and 2 acting togethers
-forces_case_3 = [copy(forces_case_1);
-                 copy(forces_case_2)];
+forces_case_3 = [deepcopy(forces_case_1);
+                 deepcopy(forces_case_2)];
 
 # restricted degree of freedom (Direction X=1, Y=2, Z=3)
 #                       Node   Direction
