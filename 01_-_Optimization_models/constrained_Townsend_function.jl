@@ -50,3 +50,7 @@ end
 # variable bounds
 bounds = [-2.25   2.25;    # ----> x
           -2.5    1.75];   # ----> y
+
+# X* (optimal)
+#                x        y
+X_optimal = [2.0052938 1.1944509];

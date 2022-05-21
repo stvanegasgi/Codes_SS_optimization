@@ -47,3 +47,7 @@ end;
 # variable bounds
 #               min        max
 bounds = [-5.0*ones(n) 5.0*ones(n)];
+
+# X* (optimal)
+#               x1 = x2 = ... = xn = -2.903534
+X_optimal = ones(n)*-2.903534;

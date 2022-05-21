@@ -46,3 +46,7 @@ end;
 #          min   max
 bounds = [-4.5   4.5;  # --> x
           -4.5   4.5]; # --> y
+
+# X* (optimal)
+#             x    y
+X_optimal = [3.0  0.5];

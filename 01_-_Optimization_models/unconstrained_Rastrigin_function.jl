@@ -48,3 +48,7 @@ end;
 # variable bounds
 #               min         max
 bounds = [-5.12*ones(n) 5.12*ones(n)];
+
+# X* (optimal)
+#            x1 = x2 = ... = xn = 0
+X_optimal = zeros(n);

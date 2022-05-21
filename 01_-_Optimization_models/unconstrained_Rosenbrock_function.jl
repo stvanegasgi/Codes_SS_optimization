@@ -50,5 +50,10 @@ function f_c(X::Array{Float64, 1}, opti::Any=nothing)
 end;
 
 # variable bounds
-#              min              max
-bounds = [-1.0e20*ones(n)  1.0e20*ones(n)];   # -∞ <= xi <= ∞
+#          min      max
+bounds = [-2.0      2.0;
+          -2.0      3.0];   # -∞ <= xi <= ∞ (for plotting and examples)
+
+# X* (optimal)
+#            x1 = x2 = ... = xn = 1
+X_optimal = ones(n);
