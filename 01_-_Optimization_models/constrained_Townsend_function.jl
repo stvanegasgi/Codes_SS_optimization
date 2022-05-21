@@ -43,7 +43,7 @@ end
 function f_c(X, opti)
 
     x = X[1];   y = X[2];
-    t = atan(y, x);
+    t = atan(x, y);
     return [x^2 + y^2 - (2*cos(t) - 0.5*cos(2*t) - 0.25*cos(3*t) - 0.125*cos(4*t))^2 - (2*sin(t))^2]
 end
 
