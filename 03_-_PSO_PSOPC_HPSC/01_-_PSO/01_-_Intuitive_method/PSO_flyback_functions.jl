@@ -215,7 +215,6 @@ function init_particle(X_min            ::Vector{Float64},
 
 #   defines the counters variables
     global counter_funtion
-    global counter_constraint
 
     check_constraint = false;   # X is not feasible in constraints
 
@@ -224,9 +223,6 @@ function init_particle(X_min            ::Vector{Float64},
 
 #       X particle between the bounds (for each component)
         X_part = rand.(Uniform.(X_min, X_max));
-
-#       counter constraint function evaluations
-        counter_constraint += 1;
 
 #       is feasible X in constraint?
         check_constraint = X_feasible_constraints(X_part,
