@@ -52,7 +52,7 @@ vbounds = [-2.0*ones(num_var)  2.0*ones(num_var)]; # velocity limits
 
 opt_arg = nothing;  # optional arguments
 num_particles = 30; # number of particles
-k_max = 150;        # maximunm iteration
+k_max = 150;        # maximum iteration
 ω   = [0.7, 0.5];   # inertia weight
 c1  = [2.0, 2.0];   # acceleration constants
 c2  = [2.0, 2.0];
@@ -68,7 +68,7 @@ solution    = Swarm_data.X_global;
 f_solution  = Swarm_data.f_X_global;
 
 println("\n\n=================================================================")
-println("Constrained Gomez Levy function--> PSO flyback")
+println("Constrained Gomez Levy function --> PSO flyback")
 println("X* = $solution\n")
 println("f(X*) = $f_solution\n")
 println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")

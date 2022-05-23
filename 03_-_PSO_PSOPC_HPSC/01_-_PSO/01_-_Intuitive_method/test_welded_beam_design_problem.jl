@@ -83,12 +83,12 @@ vbounds = [-9.0*ones(num_var)  9.0*ones(num_var)]; # velocity limits
 
 opt_arg = nothing;    # optional arguments
 num_particles = 30;   # number of particles
-k_max = 1000;         # maximunm iteration
-ω = [0.8, 0.5];       # inertia weight
-c1  =  [0.8, 0.8];    # acceleration constants
-c2  =  [0.8, 0.8];
+k_max = 1000;         # maximum iteration
+ω   =  [0.8, 0.5];    # inertia weight
+c1  =  [0.7, 0.7];    # acceleration constants
+c2  =  [0.7, 0.7];
 
-values_f, X_g_value, population_data, Swarm_data, fun_evals, const_evals = PSO_flyback(W, f_c, bounds,
+values_f, X_g_value, population_data, Swarm_data, fun_evals, const_evals = PSO_flyback(f, f_c, bounds,
                                                                                        opt_arg,
                                                                                        vbounds,
                                                                                        num_particles,

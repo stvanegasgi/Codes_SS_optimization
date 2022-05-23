@@ -53,7 +53,6 @@
 #
 # -----------------------------------------------------------------------------
 
-
 # ============================ packages =======================================
 
 using Plots # for plots
@@ -78,7 +77,7 @@ vbounds = [-vmax*ones(num_var)  vmax*ones(num_var)]; # velocity limits
 
 opt_arg = truss_model_25_bars;  # optional arguments
 num_particles = 50;             # number of particles
-k_max = 3000;                   # maximunm iteration
+k_max = 3000;                   # maximum iteration
 ω   =  [0.9, 0.4];              # inertia weight
 c1  =  [0.8, 0.8];              # acceleration constants
 c2  =  [0.8, 0.8];

@@ -77,7 +77,7 @@ vbounds = [-vmax*ones(num_var)  vmax*ones(num_var)]; # velocity limits
 
 opt_arg = truss_model_72_bars_bounds_2;  # optional arguments
 num_particles = 50;                      # number of particles
-k_max = 3000;                            # maximunm iteration
+k_max = 3000;                            # maximum iteration
 ω   =  [0.9, 0.4];                       # inertia weight
 c1  =  [0.8, 0.8];                       # acceleration constants
 c2  =  [0.8, 0.8];
@@ -93,7 +93,7 @@ solution    = Swarm_data.X_global;
 f_solution  = Swarm_data.f_X_global;
 
 println("\n\n=================================================================")
-println("Truss 72 bars bounds 2--> PSO flyback")
+println("Truss 72 bars bounds 2 --> PSO flyback")
 println("X* = $solution\n")
 println("f(X*) = $f_solution\n")
 println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")

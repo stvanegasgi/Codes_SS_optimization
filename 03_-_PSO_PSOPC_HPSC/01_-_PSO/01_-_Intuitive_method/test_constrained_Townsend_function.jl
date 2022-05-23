@@ -53,10 +53,10 @@ vbounds = [-2.0*ones(num_var)  2.0*ones(num_var)]; # velocity limits
 
 opt_arg = nothing;  # optional arguments
 num_particles = 50; # number of particles
-k_max = 200;        # maximunm iteration
-ω   = [0.9, 0.7];   # inertia weight
+k_max = 200;        # maximum iteration
+ω   = [0.9, 0.6];   # inertia weight
 c1  = [1.5, 1.0];   # acceleration constants
-c2  = [1.5, 0.8];
+c2  = [1.0, 0.8];
 
 values_f, X_g_value, population_data, Swarm_data, fun_evals, const_evals = PSO_flyback(f, f_c, bounds,
                                                                                        opt_arg,
@@ -69,7 +69,7 @@ solution    = Swarm_data.X_global;
 f_solution  = Swarm_data.f_X_global;
 
 println("\n\n=================================================================")
-println("Constrained Townsend function--> PSO flyback")
+println("Constrained Townsend function --> PSO flyback")
 println("X* = $solution\n")
 println("f(X*) = $f_solution\n")
 println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")
