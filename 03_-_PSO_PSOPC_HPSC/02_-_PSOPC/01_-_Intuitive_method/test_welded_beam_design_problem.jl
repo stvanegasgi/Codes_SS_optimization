@@ -38,10 +38,9 @@
 # see the reference [2]
 #
 # =============================================================================
-# ------- November 2021
-# -----------------------------------------------------------------------------
-# by 
-# ------- Steven Vanegas Giraldo -------> stvanegasgi@unal.edu.co
+# DATE:    November 2021
+# WHO:     Steven Vanegas Giraldo
+# EMAIL:   stvanegasgi@unal.edu.co
 # -----------------------------------------------------------------------------
 # Universidad Nacional de Colombia - Sede Manizales
 # =============================================================================
