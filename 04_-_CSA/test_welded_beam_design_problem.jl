@@ -76,11 +76,11 @@ X_max = bounds[:, 2]; # upper bounds
 
 opt_arg = nothing; # optional arguments
 num_crows = 50;    # number of crows
-k_max = 2000;       # maximum iteration
+k_max = 800;       # maximum iteration
 fl = 2.0;          # flight length
 AP = 0.1;          # awareness probability
 
-x_optimal, f_x_optimal = CSA(f, f_c, X_min, X_max, num_crows, k_max, fl, AP, opt_arg);
+x_optimal, f_x_optimal, fun_evals, const_evals = CSA(f, f_c, X_min, X_max, num_crows, k_max, fl, AP, opt_arg);
 
 # solution
 solution   = x_optimal[:, end];
@@ -91,8 +91,8 @@ println("Welded beam design problem --> CSA")
 println("X* = $solution\n")
 println("f(X*) = $f_solution\n")
 println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")
-#println("Objective function evaluations: $(fun_evals) \n")
-#println("Constraint function evaluations: $(const_evals) \n")
+println("Objective function evaluations: $(fun_evals) \n")
+println("Constraint function evaluations: $(const_evals) \n")
 
 display(plot(0:k_max, f_x_optimal, xlabel="Iterations k",
              ylabel="f(x)", label="")) # plot

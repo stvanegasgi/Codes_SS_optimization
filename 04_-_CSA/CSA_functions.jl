@@ -106,6 +106,9 @@ function x_feasible_constraints(x_test        ::Vector{Float64},
                                 constraint_fun::Function,
                                 optional_arg  ::Any)
 
+    global num_eval_constraints; # global variable
+    num_eval_constraints += 1; # constraints evaluations
+
 #   all the constraints are minus or equal 0, gi(x) <= 0 (constraints vector)
     x_feasible = all(constraint_fun(x_test, optional_arg) .<= 0);
 
@@ -156,6 +159,9 @@ function init_crow(f      ::Function,
                    X_max  ::Vector{Float64},
                    opt_arg::Any)
 
+#   counter by global variables
+    global num_eval_funtion;
+
     is_feasible = false; # is a feasible position?
 
     local crow_x; # local scope out the while loop
@@ -167,6 +173,7 @@ function init_crow(f      ::Function,
         is_feasible = x_feasible_constraints(crow_x, f_c, opt_arg);
     end
 
+    num_eval_funtion += 1; # objective function evaluations
     f_crow_x = f(crow_x, opt_arg); # eval the crow positions
 
 #   crow's data
@@ -184,7 +191,7 @@ end;
 """
 Function to aplied the crow seach algorithm (CSA)
 
-    x_opti_iter, fun_x_opti_iter = CSA(fun, fun_c, x_min, x_max, N, iter_max, fl, AP, optional_arg)
+    x_opti_iter, fun_x_opti_iter, num_eval_funtion, num_eval_constraints = CSA(fun, fun_c, x_min, x_max, N, iter_max, fl, AP, optional_arg)
 
 Parameters:
 
@@ -222,15 +229,19 @@ Parameters:
 
 Returns:
 
-    x_opti_iter     (Array):  array with all the best global solution of the
-                              flock for each iteration. The column k is a x
-                              global for the iteration k
-                              -- array type -- Array{Float64, 2}
+    x_opti_iter          (Array): array with all the best global solution of the
+                                  flock for each iteration. The column k is a x
+                                  global for the iteration k
+                                  -- array type -- Array{Float64, 2}
 
-    fun_x_opti_iter (Array):  array with all value of objetive function of
-                              the best global position in the flock for each
-                              iteration
-                              -- array type -- Array{Float64, 1}
+    fun_x_opti_iter      (Array): array with all value of objetive function of
+                                  the best global position in the flock for each
+                                  iteration
+                                  -- array type -- Array{Float64, 1}
+
+    num_eval_funtion     (Int64): number of objective function evaluations
+
+    num_eval_constraints (Int64): number of constraints evaluations
 """
 function CSA(fun            ::Function,
              fun_c          ::Function,
@@ -252,6 +263,10 @@ function CSA(fun            ::Function,
 #   temporal variable for the best solution in the flock for each iteration
     x_opti   = zeros(dim);
     f_x_opti = Inf64;
+
+#   variables for evaluations objective function and constraints
+    global num_eval_funtion     = 0;
+    global num_eval_constraints = 0;
 
 #   array with all struct of crow is initialize
     flock = Array{Crow, 1}(undef, N);
@@ -275,6 +290,10 @@ function CSA(fun            ::Function,
 #   save best solution in the flock
     x_opti_iter[:, iter]  = deepcopy(x_opti);
     fun_x_opti_iter[iter] = f_x_opti;
+
+#   print the initial solution (k = 0)
+    println("\n\nK [$(0)]: f(X*) = $(fun_x_opti_iter[iter]) ")
+    println("X* = $(x_opti_iter[:, iter])")
 
 #   main loop
     while iter <= iter_max
@@ -301,13 +320,14 @@ function CSA(fun            ::Function,
             end
 
 #           is a feasible position?
-            check_bounds = x_feasible_boundaries(x_new, x_min, x_max);
-            check_constraints = x_feasible_constraints(x_new, fun_c, optional_arg);
+            check_bounds          = x_feasible_boundaries(x_new, x_min, x_max);
+            check_constraints     = x_feasible_constraints(x_new, fun_c, optional_arg);
 
             if check_bounds && check_constraints # only update the feasible positions
 
 #               update the new feasible position and objective function
                 Crow_i.x   = deepcopy(x_new);
+                num_eval_funtion += 1;
                 Crow_i.f_x = fun(Crow_i.x, optional_arg);
 
 #               the hiding place is renovated
@@ -332,7 +352,11 @@ function CSA(fun            ::Function,
 #       save best solution in the flock
         x_opti_iter[:, iter]  = deepcopy(x_opti);
         fun_x_opti_iter[iter] = f_x_opti;
+
+#       print the initial solution (k = 0)
+        println("\n\nK [$(iter-1)]: f(X*) = $(fun_x_opti_iter[iter]) ")
+        println("X* = $(x_opti_iter[:, iter])")
     end
 
-    return x_opti_iter, fun_x_opti_iter
+    return x_opti_iter, fun_x_opti_iter, num_eval_funtion, num_eval_constraints
 end;
