@@ -353,9 +353,11 @@ function CSA(fun            ::Function,
         x_opti_iter[:, iter]  = deepcopy(x_opti);
         fun_x_opti_iter[iter] = f_x_opti;
 
-#       print the initial solution (k = 0)
-        println("\n\nK [$(iter-1)]: f(X*) = $(fun_x_opti_iter[iter]) ")
-        println("X* = $(x_opti_iter[:, iter])")
+#       print the results each 5 iterations
+        if (iter % 5) == 0
+            println("\n\nK [$(iter)]: f(X*) = $(fun_x_opti_iter[iter]) ")
+            println("X* = $(x_opti_iter[:, iter])")
+        end
     end
 
     return x_opti_iter, fun_x_opti_iter, num_eval_funtion, num_eval_constraints
