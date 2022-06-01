@@ -1,4 +1,4 @@
-# Mishra's Bird function with the crow search algorithm (CSA)
+# Mishra's Bird function with with the Subset Simulation (SS) optimization
 #
 #
 # min  f(X) = sin(y)e^((1 - cos(x))^2) + cos(x)e^((1 - sin(y))^2) + (x - y)^2
@@ -17,7 +17,7 @@
 # f(X*)   = -106.7645367
 #
 # =============================================================================
-# DATE:    May 2022
+# DATE:    June 2022
 # WHO:     Steven Vanegas Giraldo
 # EMAIL:   stvanegasgi@unal.edu.co
 # -----------------------------------------------------------------------------
@@ -25,9 +25,8 @@
 # =============================================================================
 #
 # References:
-# * Askarzadeh, A. (2016). A novel metaheuristic method for solving constrained
-#   engineering optimization problems: crow search algorithm.
-#   Computers & Structures, 169, 1-12.
+# *(1) Li, H.-S., Au, S.-K (2010). Desing optimization using subset simulation
+#      algorithm. Structural Safety, 32(6), 384-392.
 #
 # -----------------------------------------------------------------------------
 
@@ -36,10 +35,10 @@
 using Plots # for plots
 ENV["GKSwstype"] = "100";
 
-# ======================= CSA functions =======================================
+# ======================= SS functions ========================================
 
-# load the CSA functions
-include("./CSA_functions.jl")
+# load the SS functions
+include("./ss_optimization.jl")
 
 # load the functions
 include("../01_-_Optimization_models/constrained_Mishras_Bird_function.jl");
@@ -52,28 +51,28 @@ include("../01_-_Optimization_models/constrained_Mishras_Bird_function.jl");
 bounds = [-10.0      0.0     # ----> x
            -6.5      0.0];   # ----> y
 
-X_min = bounds[:, 1]; # lower bounds
-X_max = bounds[:, 2]; # upper bounds
+N = 100;           # number of samples
+ε = 1e-5;          # convergence criterion
+opt_arg = nothing; # optional argument
 
-opt_arg = nothing; # optional arguments
-num_crows = 50;    # number of crows
-k_max = 100;       # maximum iteration
-fl = 2.0;          # flight length
-AP = 0.1;          # awareness probability
-
-x_optimal, f_x_optimal, fun_evals, const_evals = CSA(f, f_c, X_min, X_max, num_crows, k_max, fl, AP, opt_arg);
+x_optimal, f_x_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level, fun_evals, const_evals = ss_optimization(f,
+                                                                                                                                f_c,
+                                                                                                                                N,
+                                                                                                                                bounds,
+                                                                                                                                opt_arg,
+                                                                                                                                ε);
 
 # solution
-solution   = x_optimal[:, end];
-f_solution = f_x_optimal[end];
+solution    = x_optimal[:, end];
+f_solution  = f_x_optimal[end];
 
 println("\n\n=================================================================")
-println("Constrained Mishras Bird function --> CSA")
+println("Constrained Mishras Bird function --> SS")
 println("X* = $solution\n")
 println("f(X*) = $f_solution\n")
 println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")
 println("Objective function evaluations: $(fun_evals) \n")
 println("Constraint function evaluations: $(const_evals) \n")
 
-display(plot(0:k_max, f_x_optimal, xlabel="Iterations k",
+display(plot(1:length(f_x_optimal), f_x_optimal, xlabel="Iterations k",
             ylabel="f(x)", label="")) # plot
