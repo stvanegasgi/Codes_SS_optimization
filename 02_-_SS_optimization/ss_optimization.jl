@@ -100,7 +100,6 @@ function F_con(Xs                    ::Vector{Float64},
     return -max(v_i...)
 end
 
-
 """
 Function to compute constraint fitness function for a sample Xs
 
@@ -149,10 +148,8 @@ function double_criterion_sort(fun_x    ::Vector{Float64},
                                samples  ::Array{Float64,2})
 
 #   first sort the constrains fitness function, Fcon_x, equation (8) [1]
-    ind_1      = sortperm(Fc_x, rev=true); # find the index
-    Fc_x_sort  = deepcopy(Fc_x[ind_1]);    # first the best sample
-
-    fun_x_sort = deepcopy(fun_x[ind_1]);   # sort the objective functions values
+    ind_1     = sortperm(Fc_x, rev=true); # find the index
+    Fc_x_sort = deepcopy(Fc_x[ind_1]);    # first the best sample
 
 #   verify the samples that satisfy Fcon = 0
     check_Fcon = findall(values -> values.== 0, Fc_x_sort);
@@ -162,6 +159,7 @@ function double_criterion_sort(fun_x    ::Vector{Float64},
 
 #   only sort with objective function the feasible solutions
     if length(check_Fcon) != 0 # there exist feasibles samples
+        fun_x_sort = deepcopy(fun_x[ind_1]); # sort the objective functions values
 
 #       second sort by objective function only complies Fcon = 0 (feasible samples)
 #       best the max of objective function value
@@ -186,12 +184,12 @@ end
 """
 Subset simulation (ss) algorithm for design optimization. Reference [1]
 
-    x_optimal, h_optimal = ss_optimization(fun            ::Function,
-                                           c_fun          ::Function,
-                                           N              ::Int64,
-                                           bounds         ::Array{Float64,2},
-                                           opt_arg        ::Any=nothing,
-                                           ε              ::Float64)
+    x_optimal, h_optimal, f_samples_k_level, hk_k_level, Fconk_k_level = ss_optimization(fun     ::Function,
+                                                                                         c_fun   ::Function,
+                                                                                         N       ::Int64,
+                                                                                         bounds  ::Array{Float64,2},
+                                                                                         opt_arg ::Any=nothing,
+                                                                                         ε       ::Float64)
 
 Parameters:
 
@@ -244,6 +242,22 @@ Returns:
                                 the best x for each level
                                 -----------------------------------------------
                                 h_optimal = [h_1, h_2, ..., h_end]^T
+
+    samples_k_level (Array):    array with the samples for each k-level. Each
+                                element is an array with all the samples. The
+                                rows in the array are components and each column
+                                is a sample
+
+    f_samples_k_level (Array):  array with the objective function value for each
+                                set of samples per k-level is a function of
+                                samples_k_level. Each element is an array with
+                                the function values for the samples in the k-level
+
+    hk_k_level      (Array):    array with the funtion threshold values for
+                                each k-level
+
+    Fconk_k_level   (Array):    array with the Fcon threshold values for each
+                                k-level
 """
 function ss_optimization(fun            ::Function,
                          c_fun          ::Function,
@@ -255,15 +269,16 @@ function ss_optimization(fun            ::Function,
 # ========================= lecture variables =================================
 
 #   indices for upper and lower limit
-    lower = 1;
-    upper = 2;
+    LOWER = 1;
+    UPPER = 2;
 
 # ========================= some variables ====================================
+
 #   means of the boundaries (for each row) center of domain
-    μ_i = (bounds[:, lower] + bounds[:, upper])/2;
+    μ_i = (bounds[:, LOWER] + bounds[:, UPPER])/2;
 
 #   three sigma limits, equation (12) [1] (3 standard deviation from the mean)
-    σ_i = abs.(bounds[:, upper]- bounds[:, lower])/6;
+    σ_i = abs.(bounds[:, UPPER] - bounds[:, LOWER])/6;
 
 #   dimension of the variables X = [x1, x2, ..., xn]^T
     dimension = length(μ_i);   
@@ -291,47 +306,55 @@ function ss_optimization(fun            ::Function,
         XS[component, :] = xs_i; 
     end
 
-    Fcon_x  = zeros(N); # prepared constraint fitness function for each sample
-    h_x     = zeros(N); # evaluated objective function for each sample
+    Fcon_x = zeros(N); # prepared constraint fitness function for each sample
+    h_x    = zeros(N); # evaluated objective function for each sample
 
 #   evaluate the samples xs_i (objective function h(x) and constraint fitness
 #   function F_con(x) equation (7) [1]) for each sample
     for sample = 1:N
-
 #       objetive function for the sample
-        h_x[sample]     = fun(XS[:, sample], opt_arg);
+        h_x[sample]    = fun(XS[:, sample], opt_arg);
 
 #       constrain fitness function for the sample
-        Fcon_x[sample]  = F_con(XS[:, sample], c_fun, opt_arg);
+        Fcon_x[sample] = F_con(XS[:, sample], c_fun, opt_arg);
     end
 
 #   sort the samples for double-criterion in [1]
     h_x, Fcon_x, XS = double_criterion_sort(h_x, Fcon_x, XS);
 
-    # Initial stage
+#   initial stage
     k = 1;
 
     σ_k = std(XS, dims=2); # standard desviation for the samples for components
 
 #   convergence criterion, equation (13) in [1]
-    σ_k_bounds = abs.(σ_k./(bounds[:, upper] - bounds[:, lower]));
+    σ_k_bounds = abs.(σ_k./(bounds[:, UPPER] - bounds[:, LOWER]));
 
 #   p_1 = 0.5 (initial level probability) ϵ [0, 1]
     p_k = 0.5;
 
 #   save x_optimal and h(x_optimal) for the k-level
-    x_optimal = [XS[:, 1];];                 
+    x_optimal = [deepcopy(XS[:, 1])];
     h_optimal = [h_x[1]];
 
-    while ε <= maximum(σ_k) # convergence criterion
+#   prepared the variable for samples and objective function per k level
+    samples_k_level   = [deepcopy(XS)];  # is a list of arrays
+    f_samples_k_level = [deepcopy(h_x)]; # is a array
 
-        println("x =  ", x_optimal[:, end])  # ????????????? porque end y no 1?
-        println("h(x) = ", h_optimal[end])   # ????????????? porque end y no 1?
-        println("level = ", k, "\n")
+#   variables to save the thresholds per k-level 
+    hk_k_level    = Array{Float64, 1}();
+    Fconk_k_level = Array{Float64, 1}();
+
+    while ε < maximum(σ_k) # convergence criterion
+
+#       print the results for each level
+        println("x =  ", x_optimal[:, end])
+        println("h(x) =  ", h_optimal[end])
+        println("level =  ", k, "\n")
 
 #       initial calculations for the k-th simulation level
-        Nc = ceil(Int64, p_k * N);    # number of chains
-        Ns = ceil(Int64, 1/p_k);      # number of samples per chain
+        Nc = ceil(Int64, p_k * N); # number of chains
+        Ns = ceil(Int64, 1/p_k);   # number of samples per chain
 
         if N != Nc * Ns # Nc and Ns are positive integers?
             error("Nc or Ns are not a positive numbers. Stop simulation\n");
@@ -340,17 +363,21 @@ function ss_optimization(fun            ::Function,
         Ns = Ns - 1; # fit the samples
 
 #       prepared the seeds for the k simulation level
-        seeds       = deepcopy(XS[:, 1:Nc]);  # the seeds
-        h_seeds     = deepcopy(h_x[1:Nc]);    # objective function of the seeds
-        Fcon_seeds  = deepcopy(Fcon_x[1:Nc]); # constraints fitness function of the seeds
-        h_k  = h_x[Nc];      # the threshold h_k for the k-level
-        Fc_k = Fcon_x[Nc];   # the threshold Fc_k for the k-level
+        seeds      = deepcopy(XS[:, 1:Nc]);  # the seeds
+        h_seeds    = deepcopy(h_x[1:Nc]);    # objective function of the seeds
+        Fcon_seeds = deepcopy(Fcon_x[1:Nc]); # constraints fitness function of the seeds
+        h_k  = h_x[Nc];    # the threshold h_k for the k-level
+        Fc_k = Fcon_x[Nc]; # the threshold Fc_k for the k-level
+
+#       save the thresholds
+        push!(hk_k_level, h_k);
+        push!(Fconk_k_level, Fc_k);
 
         for chain in 1:Nc # number of Markov chain
 
-            seed_i       = seeds[:, chain];  # seed with n component
-            h_seeds_i    = h_seeds[chain];   # objetive function of the seed
-            Fcon_seeds_i = Fcon_seeds[chain];# constraint fitness function of the seed
+            seed_i       = deepcopy(seeds[:, chain]); # seed with n component
+            h_seeds_i    = h_seeds[chain];    # objetive function of the seed
+            Fcon_seeds_i = Fcon_seeds[chain]; # constraint fitness function of the seed
 
             for sample_chain in 1:Ns # for Ns samples per chain
 
@@ -398,49 +425,41 @@ function ss_optimization(fun            ::Function,
                 h_candidate    = fun(X_p, opt_arg);
                 Fcon_candidate = F_con(X_p, c_fun, opt_arg);
 
-                idx = Nc + (chain - 1)*Ns + sample_chain;
+                idx = Nc + (chain - 1)*Ns + sample_chain; # index
 
 #               determinate the candidate X' is in the event k-level with Fk
                 if Fc_k == 0 # satisfy the constraint {h >= hk}
 
                     if h_candidate >= h_k # accept the candidate in the chain
-
 #                       save the candidate, objective function and his Fcon
-                        XS[:, ]  = X_p;
+                        XS[:, idx]  = deepcopy(X_p);
                         h_x[idx]    = h_candidate;
                         Fcon_x[idx] = Fcon_candidate;
-
                     else # reject the candidate and set the seed
-
 #                       save the seed, objective function and his Fcon
-                        XS[:, idx]  = seed_i;
+                        XS[:, idx]  = deepcopy(seed_i);
                         h_x[idx]    = h_seeds_i;
                         Fcon_x[idx] = Fcon_seeds_i;
-
                     end
                 else # Fck < 0 {Fcon >= Fck}
 
                     if Fcon_candidate >= Fc_k # accept the candidate in the chain
-
 #                       save the candidate, objective function and his Fcon
-                        XS[:, idx]  = X_p;
+                        XS[:, idx]  = deepcopy(X_p);
                         h_x[idx]    = h_candidate;
                         Fcon_x[idx] = Fcon_candidate;
-
                     else # reject the candidate and set the seed
-
 #                       save the seed, objective function and his Fcon
-                        XS[:, idx]  = seed_i;
+                        XS[:, idx]  = deepcopy(seed_i);
                         h_x[idx]    = h_seeds_i;
                         Fcon_x[idx] = Fcon_seeds_i;
-
                     end
                 end
 
 #               define the news seed and objective function of the seed for the chain
-                seed_i          = XS[:, idx];
-                h_seeds_i       = h_x[idx];
-                Fcon_seeds_i    = Fcon_x[idx];
+                seed_i       = deepcopy(XS[:, idx]);
+                h_seeds_i    = h_x[idx];
+                Fcon_seeds_i = Fcon_x[idx];
             end
         end
 
@@ -450,27 +469,29 @@ function ss_optimization(fun            ::Function,
         σ_k = std(XS, dims=2); # standard desviation for the new samples for components
 
 #       convergence criterion, equation (13) in [1]
-        σ_k_bounds = abs.(σ_k./(bounds[:, upper] - bounds[:, lower]));
+        σ_k_bounds = abs.(σ_k./(bounds[:, UPPER] - bounds[:, LOWER]));
 
 #       defines the level probability for the next level, section 4.3 [1]
         σ_i_hat = maximum(σ_k); # criterion for the level probability
 
 #       criterion from section 4.3 [1]
         if σ_i_hat < 0.1
-
             p_k = 0.2;
-
             if σ_i_hat < 0.01
-
                 p_k = 0.1
             end
         end
 
 #       save x_optimal and h(x_optimal) for the k-level
-        x_optimal = [x_optimal XS[:, 1]];
+        x_optimal = [x_optimal deepcopy(XS[:, 1])];
         h_optimal = [h_optimal; h_x[1]];
-        k = 1 + k;
+
+#       save the samples and their objective function per k-level
+        push!(samples_k_level, deepcopy(XS));
+        push!(f_samples_k_level, deepcopy(h_x));
+
+        k = 1 + k; # nest k_level
     end
 
-    return x_optimal, h_optimal
+    return x_optimal, h_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level
 end
