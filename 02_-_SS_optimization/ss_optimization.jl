@@ -1,7 +1,7 @@
 # Functions for solving optimization problem with the Subset Simulation method
 #
 # Optimization problem:
-# max  f(X)     s.t  g_i(X) <= 0,   i = 1, 2, ..., m ---> constraints
+# min  f(X)     s.t  g_i(X) <= 0,   i = 1, 2, ..., m ---> constraints
 #  X
 #
 # X = [x1, x2, ..., xn]^T
@@ -90,6 +90,8 @@ function F_con(Xs                    ::Vector{Float64},
                constraint_function   ::Function,
                opt_arg               ::Any=nothing)
 
+    global num_const_eval; # global variables
+    num_const_eval += 1; # constraint evaluated
 #   evaluate the constrains vector [g1(x), g2(x), ..., gL(x)]^T
     constrains = constraint_function(Xs, opt_arg);
 
@@ -162,8 +164,8 @@ function double_criterion_sort(fun_x    ::Vector{Float64},
         fun_x_sort = deepcopy(fun_x[ind_1]); # sort the objective functions values
 
 #       second sort by objective function only complies Fcon = 0 (feasible samples)
-#       best the max of objective function value
-        ind_2 = sortperm(fun_x_sort[check_Fcon], rev=true)
+#       best the min of objective function value
+        ind_2 = sortperm(fun_x_sort[check_Fcon]);
 
 #       sort the feasible samples with the objective function
         final_index[check_Fcon] = final_index[check_Fcon][ind_2];
@@ -184,12 +186,12 @@ end
 """
 Subset simulation (ss) algorithm for design optimization. Reference [1]
 
-    x_optimal, h_optimal, f_samples_k_level, hk_k_level, Fconk_k_level = ss_optimization(fun     ::Function,
-                                                                                         c_fun   ::Function,
-                                                                                         N       ::Int64,
-                                                                                         bounds  ::Array{Float64,2},
-                                                                                         opt_arg ::Any=nothing,
-                                                                                         ε       ::Float64)
+    x_optimal, h_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level, num_fun_eval, num_const_eval = ss_optimization(fun     ::Function,
+                                                                                                                                        c_fun   ::Function,
+                                                                                                                                        N       ::Int64,
+                                                                                                                                        bounds  ::Array{Float64,2},
+                                                                                                                                        opt_arg ::Any=nothing,
+                                                                                                                                        ε       ::Float64)
 
 Parameters:
 
@@ -258,6 +260,10 @@ Returns:
 
     Fconk_k_level   (Array):    array with the Fcon threshold values for each
                                 k-level
+
+    num_fun_eval    (Int):      number of objective function evaluations
+
+    num_const_eval  (Int):      number of constrains function evaluations
 """
 function ss_optimization(fun            ::Function,
                          c_fun          ::Function,
@@ -309,9 +315,15 @@ function ss_optimization(fun            ::Function,
     Fcon_x = zeros(N); # prepared constraint fitness function for each sample
     h_x    = zeros(N); # evaluated objective function for each sample
 
+#   number of objective function and constraint function evaluations
+    global num_fun_eval   = 0;
+    global num_const_eval = 0;
+
 #   evaluate the samples xs_i (objective function h(x) and constraint fitness
 #   function F_con(x) equation (7) [1]) for each sample
     for sample = 1:N
+
+        num_fun_eval += 1; # eval objective Function
 #       objetive function for the sample
         h_x[sample]    = fun(XS[:, sample], opt_arg);
 
@@ -334,7 +346,7 @@ function ss_optimization(fun            ::Function,
     p_k = 0.5;
 
 #   save x_optimal and h(x_optimal) for the k-level
-    x_optimal = [deepcopy(XS[:, 1])];
+    x_optimal = deepcopy(XS[:, 1]);
     h_optimal = [h_x[1]];
 
 #   prepared the variable for samples and objective function per k level
@@ -422,15 +434,16 @@ function ss_optimization(fun            ::Function,
 
 #               evaluate a objetive function and the constraint fitness function
 #               for the candidate
+                num_fun_eval += 1; # eval objective function
                 h_candidate    = fun(X_p, opt_arg);
                 Fcon_candidate = F_con(X_p, c_fun, opt_arg);
 
                 idx = Nc + (chain - 1)*Ns + sample_chain; # index
 
 #               determinate the candidate X' is in the event k-level with Fk
-                if Fc_k == 0 # satisfy the constraint {h >= hk}
+                if Fc_k == 0 # satisfy the constraint {h <= hk}
 
-                    if h_candidate >= h_k # accept the candidate in the chain
+                    if h_candidate <= h_k # accept the candidate in the chain
 #                       save the candidate, objective function and his Fcon
                         XS[:, idx]  = deepcopy(X_p);
                         h_x[idx]    = h_candidate;
@@ -478,20 +491,20 @@ function ss_optimization(fun            ::Function,
         if σ_i_hat < 0.1
             p_k = 0.2;
             if σ_i_hat < 0.01
-                p_k = 0.1
+                p_k = 0.1;
             end
         end
 
 #       save x_optimal and h(x_optimal) for the k-level
-        x_optimal = [x_optimal deepcopy(XS[:, 1])];
+        x_optimal = hcat(x_optimal, deepcopy(XS[:, 1]));
         h_optimal = [h_optimal; h_x[1]];
 
 #       save the samples and their objective function per k-level
         push!(samples_k_level, deepcopy(XS));
         push!(f_samples_k_level, deepcopy(h_x));
 
-        k = 1 + k; # nest k_level
+        k = 1 + k; # next k_level
     end
 
-    return x_optimal, h_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level
+    return x_optimal, h_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level, num_fun_eval, num_const_eval
 end
