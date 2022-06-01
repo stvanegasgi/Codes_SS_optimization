@@ -1,5 +1,5 @@
 # Structural model unknowns for 3D truss, load case 1 and 2 for truss with 25
-# bars with subset simulation optimization
+# bars with the Subset Simulation (SS) optimization
 #
 #
 # min  W(A) = Σ(ρ_i*L_i*A_i), for i=1, 2, ..., 25
@@ -26,12 +26,22 @@
 # Bounds:
 # 0.01 [in^2] <= Ai <= 3.5 [in], for i=1, 2, ..., 25
 #
+# Number of restrictions: 172
+# * Displacement: 2 (+-) * 3 Direction * 6 Nodes * 2 Cases  = 72
+# * Stress: 2 (Compressive and Tensile) * 25 Bars * 2 Cases = 100
+#
+# keep in mind the units of unknows
+# Areas:     [in^2]
+# Forces:    [kips = 1_000 lb_f]
+# Distances: [in]
+# Stress:    [ksi = 1_000psi = 1_000 lb_f/in^2]
+# Weight:    [lbf]
+# Density:   [lb/in^3]
 #
 # =============================================================================
-# ------- April 2022
-# -----------------------------------------------------------------------------
-# by 
-# ------- Steven Vanegas Giraldo -------> stvanegasgi@unal.edu.co
+# DATE:    June 2022
+# WHO:     Steven Vanegas Giraldo
+# EMAIL:   stvanegasgi@unal.edu.co
 # -----------------------------------------------------------------------------
 # Universidad Nacional de Colombia - Sede Manizales
 # =============================================================================
@@ -40,86 +50,47 @@
 # *(1) Li, H.-S., Au, S.-K (2010). Desing optimization using subset simulation
 #      algorithm. Structural Safety, 32(6), 384-392.
 #
-# *(2) Haftka RT, Gurdal Z. Elements of structural optimization. 3rd
-#      ed. Dordrecht: Kluwer Academic Publishers; 1992. (pag-245)
-#
 # -----------------------------------------------------------------------------
 
+# ============================ packages =======================================
+
+using Plots # for plots
+ENV["GKSwstype"] = "100";
 
 # ======================= SS functions and model ==============================
 
-include("./load_case_1_2_3D_truss_25_bars.jl") # load the variables of model
-include("./structure_solver_functions.jl")     # function structural solver
-include("./ss_optimization.jl")                # load SS optimization functions
+include("../01_-_Optimization_models/truss_25_bars_3D.jl"); # model truss
+include("./ss_optimization.jl");                            # load the SS
 
 # ===================== data of optimization problem ==========================
 
-# objective function (weight of structure)
-function W(A, model)
-    
-    L_i           = model.length_bars; # the length of each bar
-    Type_material = model.info_elements[:, 3]; # type of material
-    ρ_i           = model.info_material_propieties[Type_material, 4]; # density 
-    A_i           = A[Type_material]; # areas for each element
-    
-    return -sum(ρ_i .* L_i .* A_i); # for min problem
-end
-
-# constraints function
-function f_c(A, model)
-
-#   material propieties with A to test
-    material_properties_load_1_2 = deepcopy(model.info_material_propieties[:, 1:3]);
-    material_properties_load_1_2[:, 2] = A;
-
-#   solution FEM load case 1
-    δ1, _, _, σ1, _, _ = solver_truss(model.coordinates,
-                                      model.info_elements,
-                                      material_properties_load_1_2,
-                                      model.load_cases[1],
-                                      model.restricted_dof);
-
-#   stress constraints for the load case 1
-    σ1_T = σ1 - model.axial_sigma_restricted[:, 2];   # σ - σmax <= 0
-    σ1_C = model.axial_sigma_restricted[:, 3]  - σ1;  # σmin - σ <= 0
-
-#   displacement constraint
-    nodes           = model.constraint_displacement[:, 1];
-    direction       = model.constraint_displacement[:, 2];
-    constraint_dof  = Int64.(3*nodes .- 3 .+ direction);
-
-#   positive and negative displacement
-#   δ - δmax <= 0
-    δ1_p = δ1[constraint_dof] - model.constraint_displacement[:, 3];
-#   δmin - δ <= 0
-    δ1_n = model.constraint_displacement[:, 4] - δ1[constraint_dof];
-
-#   solution FEM load case 2
-    δ2, _, _, σ2, _, _ = solver_truss(model.coordinates,
-                                      model.info_elements,
-                                      material_properties_load_1_2,
-                                      model.load_cases[2],
-                                      model.restricted_dof);
-
-#   stress constraints for the load case 2
-    σ2_T = σ2 - model.axial_sigma_restricted[:, 2];   # σ - σmax <= 0
-    σ2_C = model.axial_sigma_restricted[:, 3]  - σ2;  # σmin - σ <= 0
-
-#   positive and negative displacement
-#   δ - δmax <= 0
-    δ2_p = δ2[constraint_dof] - model.constraint_displacement[:, 3];
-#   δmin - δ <= 0
-    δ2_n = model.constraint_displacement[:, 4] - δ2[constraint_dof];
-
-    return [σ1_T; σ1_C; δ1_p; δ1_n; σ2_T; σ2_C; δ2_p; δ2_n]
-end
+# the objective and constraint function are defines by W and f_c respectivily
 
 # variable bounds
 bounds = truss_model_25_bars.variables_bounds;
-opt_arg = truss_model_25_bars;  # optional arguments
-ε = 1e-6; # convergence criterion (10^-5  -  10^-7)
 
-x_opti, h_opti = ss_optimization(W, f_c, 200, bounds, opt_arg, ε);
+N = 200;           # number of samples
+ε = 1e-5;          # convergence criterion
+opt_arg = truss_model_25_bars; # optional arguments
 
-println(x_opti[:, end])
-println(h_opti)
+x_optimal, f_x_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level, fun_evals, const_evals = ss_optimization(W,
+                                                                                                                                f_c,
+                                                                                                                                N,
+                                                                                                                                bounds,
+                                                                                                                                opt_arg,
+                                                                                                                                ε);
+
+# solution
+solution    = x_optimal[:, end];
+f_solution  = f_x_optimal[end];
+
+println("\n\n=================================================================")
+println("Truss 25 bars --> CSA")
+println("X* = $solution\n")
+println("f(X*) = $f_solution\n")
+println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")
+println("Objective function evaluations: $(fun_evals) \n")
+println("Constraint function evaluations: $(const_evals) \n")
+
+display(plot(1:length(f_x_optimal), f_x_optimal, xlabel="Iterations k",
+             ylabel="f(x)", label="")) # plot
