@@ -78,7 +78,7 @@ solution    = x_optimal[:, end];
 f_solution  = f_x_optimal[end];
 
 println("\n\n=================================================================")
-println("Truss 200 bars --> CSA")
+println("Truss 200 bars --> SS")
 println("X* = $solution\n")
 println("f(X*) = $f_solution\n")
 println("Constraints (gi(X*) <= 0) = $(f_c(solution, opt_arg)) \n")
