@@ -410,14 +410,12 @@ function ss_optimization(fun            ::Function,
                     xl_i, xu_i = bounds[component_i, :];
 
 #                   the proposal PDF p*(-|Xk), N(Xk, σ_sample)
-                    proposal_pdf = Truncated(Normal(seed_i[component_i], σ_k[component_i]), xl_i, xu_i);
+#                    proposal_pdf = Truncated(Normal(seed_i[component_i], σ_k[component_i]), xl_i, xu_i);
 
 #                   the proposal PDF p*(-|Xk), U(Xk - σ_k, Xk + σ_k)
                     a = seed_i[component_i] - 1*σ_k[component_i];
                     b = seed_i[component_i] + 1*σ_k[component_i];
                     proposal_pdf = Uniform(a, b);
-
-#                    proposal_pdf = Laplace(seed_i[component_i],σ_k[component_i]);
 
 #                   in some case the sample could be outer the boundaries
                     local x_component;
