@@ -71,7 +71,7 @@ bounds = [0.1       2.0     # ----> x1
           0.1       2.0];   # ----> x4
 
 N = 200;           # number of samples
-ε = 1e-3;          # convergence criterion
+ε = 1e-6;          # convergence criterion
 k_max = 3000;      # stop criterion
 opt_arg = nothing; # optional argument
 

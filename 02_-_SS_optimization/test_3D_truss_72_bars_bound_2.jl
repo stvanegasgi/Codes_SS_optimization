@@ -69,8 +69,8 @@ include("./ss_optimization.jl");                                    # load the S
 # variable bounds
 bounds = truss_model_72_bars_bounds_2.variables_bounds;
 
-N = 100;           # number of samples
-ε = 1e-5;          # convergence criterion
+N = 200;           # number of samples
+ε = 1e-4;          # convergence criterion
 k_max = 1000;      # stop criterion
 opt_arg = truss_model_72_bars_bounds_2; # optional arguments
 
