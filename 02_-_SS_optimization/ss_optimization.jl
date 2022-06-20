@@ -406,11 +406,18 @@ function ss_optimization(fun            ::Function,
                 X_p = zeros(dimension); # prepared a sample X' from p*(-|Xk)
 
                 for component_i in 1:dimension # for each component of the sample
-#                                                                               OJO ES MAS FACIL GENERARLO DE LA PDF TRUNCADA con Truncated
+
                     xl_i, xu_i = bounds[component_i, :];
 
 #                   the proposal PDF p*(-|Xk), N(Xk, σ_sample)
-                    proposal_pdf = Normal(seed_i[component_i], σ_k[component_i]);
+                    proposal_pdf = Truncated(Normal(seed_i[component_i], σ_k[component_i]), xl_i, xu_i);
+
+#                   the proposal PDF p*(-|Xk), U(Xk - σ_k, Xk + σ_k)
+                    a = seed_i[component_i] - 1*σ_k[component_i];
+                    b = seed_i[component_i] + 1*σ_k[component_i];
+                    proposal_pdf = Uniform(a, b);
+
+#                    proposal_pdf = Laplace(seed_i[component_i],σ_k[component_i]);
 
 #                   in some case the sample could be outer the boundaries
                     local x_component;
@@ -498,9 +505,9 @@ function ss_optimization(fun            ::Function,
 
 #       criterion from section 4.3 [1]
         if σ_i_hat < 0.1
-            p_k = 0.2;
+            p_k = 0.5;
             if σ_i_hat < 0.01
-                p_k = 0.1;
+                p_k = 0.5;
             end
         end
 
