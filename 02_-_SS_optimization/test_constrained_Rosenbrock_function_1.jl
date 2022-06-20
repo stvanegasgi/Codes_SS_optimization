@@ -55,6 +55,7 @@ bounds = [-1.5       1.5     # ----> x
 
 N = 100;           # number of samples
 ε = 1e-2;          # convergence criterion
+k_max = 3000;      # stop criterion
 opt_arg = nothing; # optional argument
 
 x_optimal, f_x_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level, fun_evals, const_evals = ss_optimization(f,
@@ -62,7 +63,8 @@ x_optimal, f_x_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_
                                                                                                                                 N,
                                                                                                                                 bounds,
                                                                                                                                 opt_arg,
-                                                                                                                                ε);
+                                                                                                                                ε,
+                                                                                                                                k_max);
 
 # solution
 solution    = x_optimal[:, end];

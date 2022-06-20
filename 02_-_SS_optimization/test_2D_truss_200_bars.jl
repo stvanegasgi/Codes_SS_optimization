@@ -64,6 +64,7 @@ bounds = truss_model_200_bars.variables_bounds;
 
 N = 100;           # number of samples
 ε = 1e-5;          # convergence criterion
+k_max = 1000;      # stop criterion
 opt_arg = truss_model_200_bars; # optional arguments
 
 x_optimal, f_x_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_level, fun_evals, const_evals = ss_optimization(W,
@@ -71,7 +72,8 @@ x_optimal, f_x_optimal, samples_k_level, f_samples_k_level, hk_k_level, Fconk_k_
                                                                                                                                 N,
                                                                                                                                 bounds,
                                                                                                                                 opt_arg,
-                                                                                                                                ε);
+                                                                                                                                ε,
+                                                                                                                                k_max);
 
 # solution
 solution    = x_optimal[:, end];

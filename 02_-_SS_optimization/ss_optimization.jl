@@ -191,7 +191,8 @@ Subset simulation (ss) algorithm for design optimization. Reference [1]
                                                                                                                                         N       ::Int64,
                                                                                                                                         bounds  ::Array{Float64,2},
                                                                                                                                         opt_arg ::Any=nothing,
-                                                                                                                                        ε       ::Float64)
+                                                                                                                                        ε       ::Float64,
+                                                                                                                                        k_max   ::Int64)
 
 Parameters:
 
@@ -230,7 +231,10 @@ Parameters:
 
     ε                 (Float):  convergence criterion, equation (13) in [1]
                                 max(abs.(σ_k./(bounds[:, upper] - bounds[:, lower])))
+                                for default is 1e-4
 
+    k_max               (Int):  stop criterion for maximum level simulation, for
+                                default is 1000 levels
 Returns:
 
     x_optimal       (Array):    array with all the best x for each level
@@ -270,7 +274,8 @@ function ss_optimization(fun            ::Function,
                          N              ::Int64,
                          bounds         ::Array{Float64,2},
                          opt_arg        ::Any=nothing,
-                         ε              ::Float64=1e-6)
+                         ε              ::Float64=1e-4,
+                         k_max          ::Int64=1000)
 
 # ========================= lecture variables =================================
 
@@ -290,6 +295,9 @@ function ss_optimization(fun            ::Function,
     dimension = length(μ_i);   
 
 # ========================= compute P(F1) =====================================
+
+#   next level
+    k = 0;
 
 #   prepares samples matrix (row=component, column=sample)
     XS = zeros(dimension, N);
@@ -334,7 +342,7 @@ function ss_optimization(fun            ::Function,
 #   sort the samples for double-criterion in [1]
     h_x, Fcon_x, XS = double_criterion_sort(h_x, Fcon_x, XS);
 
-#   initial stage
+#   next level
     k = 1;
 
     σ_k = std(XS, dims=2); # standard desviation for the samples for components
@@ -342,7 +350,7 @@ function ss_optimization(fun            ::Function,
 #   convergence criterion, equation (13) in [1]
     σ_k_bounds = abs.(σ_k./(bounds[:, UPPER] - bounds[:, LOWER]));
 
-#   p_1 = 0.5 (initial level probability) ϵ [0, 1]
+#   p_0 = 0.5 (initial level probability) ϵ [0, 1]
     p_k = 0.5;
 
 #   save x_optimal and h(x_optimal) for the k-level
@@ -357,7 +365,8 @@ function ss_optimization(fun            ::Function,
     hk_k_level    = Array{Float64, 1}();
     Fconk_k_level = Array{Float64, 1}();
 
-    while ε < maximum(σ_k) # convergence criterion
+    while ε < maximum(σ_k_bounds) && k < k_max # convergence criterion and
+#                                                stop criterion
 
 #       print the results for each level
         println("x =  ", x_optimal[:, end])
